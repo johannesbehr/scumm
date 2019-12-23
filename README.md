@@ -4,7 +4,8 @@ This is my try to port the SCUMM-VM (See: https://www.scummvm.org/) to ESP32. Cu
 - Only works with MonkeyIsland1 CD-Version
 - Only available engine is the SCUMM-Engine
 - No sound
-- No input except the START-Key (sending ESC)
+- No animated cursor
+- No load/save function
 ...
 
 But it proofs that SCUMM can run on the ESP32!

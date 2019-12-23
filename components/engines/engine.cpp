@@ -306,8 +306,8 @@ void initGraphics(int width, int height, const Graphics::PixelFormat *format) {
 
 	printf("initGraphics(4)\n");
 	
-	if (!splash && !GUI::GuiManager::instance()._launched)
-		splashScreen();
+//	if (!splash && !GUI::GuiManager::instance()._launched)
+//		splashScreen();
 
 	printf("initGraphics(5)\n");
 	
