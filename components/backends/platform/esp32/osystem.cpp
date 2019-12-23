@@ -124,9 +124,12 @@ namespace _Esp32 {
 	#define KEY_RIGHT 128 
 	uint16_t lastKeystate = 0;
 	
+	int ax = 0;
+	int ay = 0;
+	
 	void OSystem_Esp32::receiveKeyState(uint16_t keystate){
 		Common::Event event;		
-		printf("receiveKeyState(1):%d\n",keystate);
+		//printf("receiveKeyState(1):%d\n",keystate);
 		
 
 		if(!(lastKeystate & KEY_START)&&(keystate&KEY_START)){
@@ -148,6 +151,66 @@ namespace _Esp32 {
 			//pushEventQueue(_eventQueue, event);	
 			_eventQueue.push(event);
 		}
+
+		if(!(lastKeystate & KEY_A)&&(keystate&KEY_A)){
+			event.type = Common::EVENT_LBUTTONDOWN;
+			event.mouse.x = _cursorX;
+			event.mouse.y = _cursorY;
+			_eventQueue.push(event);
+		}
+
+		if((lastKeystate & KEY_A)&&!(keystate&KEY_A)){
+			event.type = Common::EVENT_LBUTTONUP;
+			event.mouse.x = _cursorX;
+			event.mouse.y = _cursorY;
+			_eventQueue.push(event);
+		}
+
+		if(!(lastKeystate & KEY_B)&&(keystate&KEY_B)){
+			event.type = Common::EVENT_RBUTTONDOWN;
+			event.mouse.x = _cursorX;
+			event.mouse.y = _cursorY;
+			_eventQueue.push(event);
+		}
+
+		if((lastKeystate & KEY_B)&&!(keystate&KEY_B)){
+			event.type = Common::EVENT_RBUTTONUP;
+			event.mouse.x = _cursorX;
+			event.mouse.y = _cursorY;
+			_eventQueue.push(event);
+		}
+		
+		
+		if(!(keystate&(KEY_RIGHT|KEY_LEFT))){
+			ax = 0;
+		}else{
+			if(keystate&KEY_RIGHT){
+				ax++;
+			}else if(keystate&KEY_LEFT){
+				ax--;
+			}
+			_gameDirty = true;
+		}
+		
+		_cursorX += ax;
+		if(_cursorX<0)_cursorX=0;
+		if(_cursorX>319)_cursorX=319;
+
+		if(!(keystate&(KEY_UP|KEY_DOWN))){
+			ay = 0;
+		}else{
+			if(keystate&KEY_UP){
+				ay--;
+			}else if(keystate&KEY_DOWN){
+				ay++;
+			}
+			_gameDirty = true;
+		}
+		
+		_cursorY += ay;
+		if(_cursorY<0)_cursorY=0;
+		if(_cursorY>199)_cursorX=199;
+
 		
 		lastKeystate = keystate;
 	}
@@ -158,6 +221,8 @@ namespace _Esp32 {
 		queue->push(event);
 	}*/
 	
+	int _lastCursorX = 0;
+	int _lastCursorY = 0;
 	
 	bool OSystem_Esp32::pollEvent(Common::Event &event) {
 		
@@ -169,6 +234,15 @@ namespace _Esp32 {
 			pushEventQueue(eventQueue, event);	
 			*/
 	
+	if((_lastCursorX!=_cursorX)||(_lastCursorY!=_cursorY)){
+		Common::Event event;				
+		event.type = Common::EVENT_MOUSEMOVE;
+		event.mouse.x = _cursorX;
+		event.mouse.y = _cursorY;
+		_lastCursorX=_cursorX;
+		_lastCursorY=_cursorY;
+		_eventQueue.push(event);
+	}
 	
 	if (_eventQueue.empty())
 	return false;

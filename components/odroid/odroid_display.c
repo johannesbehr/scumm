@@ -676,7 +676,7 @@ void ili9341_write_frame_gb(uint16_t* buffer, int scale, overlay_struct overlay)
     odroid_display_unlock_gb_display();
 }
 
-void ili9341_write_frame_scumm(uint8_t* buffer, uint16_t* palette, uint16_t height)
+void ili9341_write_frame_scumm(uint8_t* buffer, uint16_t* palette, uint16_t height,const uint16_t* cursor, int16_t cx, int16_t cy)
 {
 //return;
 
@@ -726,6 +726,9 @@ void ili9341_write_frame_scumm(uint8_t* buffer, uint16_t* palette, uint16_t heig
                   for (x = 0; x < 320; ++x)
                   {
 					 line_buffer[index++] = palette[buffer[bufferIndex++]];
+					 if((cursor!=NULL) &&(x>=cx) && (x<cx+16) && ((y+i)>=cy) && ((y+i)<cy+16) && ((1<<(x-cx)) & cursor[(y+i)-cy])){
+						 line_buffer[index-1]=0xFFFF;
+					 }
                   }
 
                   ++linesWritten;

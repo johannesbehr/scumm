@@ -70,7 +70,7 @@ public:
 	OSystem_Esp32();
 	virtual ~OSystem_Esp32();
 
-	void (*drawImageToScreen)(uint8_t*, uint16_t*, uint16_t);
+	void (*drawImageToScreen)(uint8_t*, uint16_t*, uint16_t, const uint16_t*, int16_t, int16_t);
 	void receiveKeyState(uint16_t lastKeystate);
 	
 	volatile bool exiting;
@@ -247,8 +247,18 @@ private:
 	Thread _timerThread;
 	*/
 	Common::Queue<Common::Event> _eventQueue;
-/*
+
 	// Cursor
+	uint _cursorWidth = 16,	_cursorHeight = 16;
+	int _cursorHotspotX = 8, _cursorHotspotY = 7;
+	int _cursorX = 100, _cursorY = 100;
+	bool _cursorVisible = false;
+
+	const uint16_t _cursorImage[16] = {
+		0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0000,0x7E3F,0x0000,0x0080,0x0080,0x0080,0x0080,0x0080,0x0080,0x0000
+	};
+	
+	/*
 	Graphics::Surface _cursor;
 	Sprite _cursorTexture;
 	bool _cursorPaletteEnabled;

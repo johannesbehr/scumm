@@ -236,7 +236,7 @@ void MixerImpl::playStream(
 		return;
 	}
 
-
+	if(!_mixerReady)return;
 	assert(_mixerReady);
 
 	// Prevent duplicate sounds

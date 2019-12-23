@@ -9,7 +9,7 @@ enum ODROID_SD_ERR {
 };
 
 void ili9341_write_frame_gb(uint16_t* buffer, int scale, overlay_struct overlay);
-void ili9341_write_frame_scumm(uint8_t* buffer, uint16_t* palette, uint16_t height);
+void ili9341_write_frame_scumm(uint8_t* buffer, uint16_t* palette, uint16_t height, const uint16_t* cursor, int16_t cursorX, int16_t cursorY);
 void ili9341_init();
 void ili9341_poweroff();
 void ili9341_prepare();

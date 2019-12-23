@@ -70,7 +70,7 @@ namespace _Esp32 {
 		}
 		_gameDirty = true;
 		
-		drawImageToScreen(_gamePixels, (uint16_t*) _palette, 200);
+		
 		
 	}
 	
@@ -95,6 +95,13 @@ namespace _Esp32 {
 	}
 	void OSystem_Esp32::updateScreen() {
 		//printf("OSystem_Esp32::updateScreen()\n");
+		if(_gameDirty){
+			if(_cursorVisible){
+			drawImageToScreen(_gamePixels, (uint16_t*) _palette, 200, _cursorImage, _cursorX - _cursorHotspotX, _cursorY - _cursorHotspotY);
+			}else{
+			drawImageToScreen(_gamePixels, (uint16_t*) _palette, 200, NULL, 0,0);
+			}
+		}
 	}
 	void OSystem_Esp32::setShakePos(int) {}
 	void OSystem_Esp32::showOverlay() {}
@@ -107,12 +114,23 @@ namespace _Esp32 {
 	void OSystem_Esp32::copyRectToOverlay(const void*, int, int, int, int, int) {
 		printf("OSystem_Esp32::copyRectToOverlay()\n");
 	}
-	bool OSystem_Esp32::showMouse(bool) {
-		return false;
-		
-		}
+	bool OSystem_Esp32::showMouse(bool visible) {
+		bool last = _cursorVisible;
+		_cursorVisible = visible;
+		return last;
+		//return false;
+	}
+	
 	void OSystem_Esp32::warpMouse(int, int) {}
-	void OSystem_Esp32::setMouseCursor(const void*, uint, uint, int, int, uint32, bool, const Graphics::PixelFormat*) {}
+	
+	void OSystem_Esp32::setMouseCursor(const void *buf, uint w, uint h, int hotspotX, int hotspotY, uint32 keycolor, bool dontScale, const Graphics::PixelFormat *format) {
+		printf("OSystem_Esp32::setMouseCursor(1): %d,%d,%d,%d,%d\n", w,h,hotspotX,hotspotY,keycolor);
+		_cursorWidth = w;
+		_cursorHeight = h;
+		_cursorHotspotX = hotspotX;
+		_cursorHotspotY = hotspotY;
+	}
+	
 	void OSystem_Esp32::setPalette(const byte *colors, uint start, uint num){
 		printf("OSystem_Esp32::setPalette\n");
 		byte r,g,b;

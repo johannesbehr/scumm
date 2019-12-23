@@ -384,11 +384,67 @@ static void setupKeymapper(OSystem &system) {}
 				
 				odroid_gamepad_state joysticState;
 				odroid_input_gamepad_read(&joysticState);
+
+				uint16_t keyState = 0;
+				bool state_changed = false;
+
+				//ODROID_INPUT_START	1
+				//ODROID_INPUT_SELECT	2
+				//ODROID_INPUT_LEFT	64
+				//ODROID_INPUT_RIGHT	128
+				//ODROID_INPUT_UP	16
+				//ODROID_INPUT_DOWN	32
+				//ODROID_INPUT_A	4
+				//ODROID_INPUT_B	8
 				
-				if(joysticState.values[ODROID_INPUT_START]!=lastJoysticState.values[ODROID_INPUT_START])
-				{
-					esp_system->receiveKeyState(joysticState.values[ODROID_INPUT_START]?1:0);
-				}
+				//if(joysticState.values[ODROID_INPUT_START]!=lastJoysticState.values[ODROID_INPUT_START]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_START]){
+						keyState|=1;
+				}//}
+				
+				//if(joysticState.values[ODROID_INPUT_SELECT]!=lastJoysticState.values[ODROID_INPUT_SELECT]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_SELECT]){
+						keyState|=2;
+				}//}
+				//if(joysticState.values[ODROID_INPUT_LEFT]!=lastJoysticState.values[ODROID_INPUT_LEFT]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_LEFT]){
+						keyState|=64;
+				}//}
+				//if(joysticState.values[ODROID_INPUT_RIGHT]!=lastJoysticState.values[ODROID_INPUT_RIGHT]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_RIGHT]){
+						keyState|=128;
+				}//}
+				//if(joysticState.values[ODROID_INPUT_UP]!=lastJoysticState.values[ODROID_INPUT_UP]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_UP]){
+						keyState|=16;
+				}//}
+				//if(joysticState.values[ODROID_INPUT_DOWN]!=lastJoysticState.values[ODROID_INPUT_DOWN]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_DOWN]){
+						keyState|=32;
+				}//}
+				//if(joysticState.values[ODROID_INPUT_A]!=lastJoysticState.values[ODROID_INPUT_A]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_A]){
+						keyState|=4;
+				}//}
+				//if(joysticState.values[ODROID_INPUT_B]!=lastJoysticState.values[ODROID_INPUT_B]){
+					//state_changed = true;
+					if(joysticState.values[ODROID_INPUT_B]){
+						keyState|=8;
+				}//}
+				
+				//if(state_changed){
+					//esp_system->receiveKeyState(joysticState.values[ODROID_INPUT_START]?1:0);
+					esp_system->receiveKeyState(keyState);
+				//}
+				
+				
 				lastJoysticState = joysticState;
 				
 				vTaskDelay(100 / portTICK_RATE_MS);
@@ -421,7 +477,7 @@ static void setupKeymapper(OSystem &system) {}
 			odroid_input_gamepad_read(&lastJoysticState);
 			
 			// Show Splash-Screen
-			ili9341_write_frame_scumm(image_splash, image_splash_palette, 240);
+			ili9341_write_frame_scumm(image_splash, image_splash_palette, 240, NULL, 0, 0);
 			
 			// Prepare SD-Card
 			esp_err_t r = odroid_sdcard_open(SD_BASE_PATH);
@@ -487,7 +543,7 @@ static void setupKeymapper(OSystem &system) {}
 			g_system->engineInit();
 
 			// Clear screen
-			ili9341_write_frame_scumm(NULL,NULL,240);
+			ili9341_write_frame_scumm(NULL,NULL,240, NULL, 0, 0);
 			
 			xTaskCreatePinnedToCore(&readInputTask, "readInputTask", 4096, NULL, 5, NULL, 0);
 			
