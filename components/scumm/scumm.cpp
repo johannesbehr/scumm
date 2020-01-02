@@ -2169,7 +2169,7 @@ Common::Error ScummEngine::go() {
 	
 	while (!shouldQuit()) {
 
-		printf("..\n");
+		//printf("..\n");
 	
 		//printf("ScummEngine::go()-Loop(1)\n");
 	

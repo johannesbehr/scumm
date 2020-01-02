@@ -56,7 +56,7 @@ namespace _Esp32 {
 		_gameHeight = height;
 	}
 	void OSystem_Esp32::copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h) {
-		printf("OSystem_Esp32::copyRectToScreen():%d,%d,%d,%d,%d\n",pitch,x,y,w,h);
+		//printf("OSystem_Esp32::copyRectToScreen():%d,%d,%d,%d,%d\n",pitch,x,y,w,h);
 		byte *dst = _gamePixels + y * _gameWidth + x;
 		if (_gameWidth == pitch && pitch == w) {
 			memcpy(dst, buf, h * w);
@@ -124,7 +124,7 @@ namespace _Esp32 {
 	void OSystem_Esp32::warpMouse(int, int) {}
 	
 	void OSystem_Esp32::setMouseCursor(const void *buf, uint w, uint h, int hotspotX, int hotspotY, uint32 keycolor, bool dontScale, const Graphics::PixelFormat *format) {
-		printf("OSystem_Esp32::setMouseCursor(1): %d,%d,%d,%d,%d\n", w,h,hotspotX,hotspotY,keycolor);
+		//printf("OSystem_Esp32::setMouseCursor(1): %d,%d,%d,%d,%d\n", w,h,hotspotX,hotspotY,keycolor);
 		_cursorWidth = w;
 		_cursorHeight = h;
 		_cursorHotspotX = hotspotX;
@@ -132,7 +132,7 @@ namespace _Esp32 {
 	}
 	
 	void OSystem_Esp32::setPalette(const byte *colors, uint start, uint num){
-		printf("OSystem_Esp32::setPalette\n");
+		//printf("OSystem_Esp32::setPalette\n");
 		byte r,g,b;
 		for(int i = 0; i<num;i++){
 			// Special conversation for RGB565
@@ -142,7 +142,7 @@ namespace _Esp32 {
 			_palette[i*2 + 1] = ((b & 0xf8)>>3) | ((g & 0xfc) <<3);
 			_palette[i*2] = (r&0xf8) | (g>>5);
 			// ggg bbbbbb  rrrrr ggg
-			printf("%d:(%d,%d,%d)\n",i+start,r,g,b);
+			//printf("%d:(%d,%d,%d)\n",i+start,r,g,b);
 		}
 	
 	}

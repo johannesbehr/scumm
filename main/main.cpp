@@ -396,6 +396,8 @@ static void setupKeymapper(OSystem &system) {}
 				//ODROID_INPUT_DOWN	32
 				//ODROID_INPUT_A	4
 				//ODROID_INPUT_B	8
+				//ODROID_INPUT_MENU 256
+				//ODROID_INPUT_VOLUME 512
 				
 				//if(joysticState.values[ODROID_INPUT_START]!=lastJoysticState.values[ODROID_INPUT_START]){
 					//state_changed = true;
@@ -439,6 +441,27 @@ static void setupKeymapper(OSystem &system) {}
 						keyState|=8;
 				}//}
 				
+				
+				/*
+				if(joysticState.values[ODROID_INPUT_MENU]!=lastJoysticState.values[ODROID_INPUT_MENU]){
+					if(joysticState.values[ODROID_INPUT_MENU]){
+						printf("Save state...");
+						Common::String filename = Common::String("/sd/roms/scummvm/monkey1/save1.sav");
+						
+						engine->saveState(1,false,filename);
+						printf("State saved.");
+					}
+				}*/
+				
+				
+				
+				if(joysticState.values[ODROID_INPUT_MENU]){
+						keyState|=256;
+				}
+				
+				if(joysticState.values[ODROID_INPUT_VOLUME]){
+						keyState|=512;
+				}
 				//if(state_changed){
 					//esp_system->receiveKeyState(joysticState.values[ODROID_INPUT_START]?1:0);
 					esp_system->receiveKeyState(keyState);
@@ -454,7 +477,6 @@ static void setupKeymapper(OSystem &system) {}
 		
 		
 		void app_main(void) {
-			printf( "\nHello World from C++!\n" );
 			printf("Scumm GO (%s-%s).\n", COMPILEDATE, GITREV);
 
 			nvs_flash_init();
@@ -494,6 +516,10 @@ static void setupKeymapper(OSystem &system) {}
 			//char *base = NULL, *dir = NULL;
 			char const *base = "monkey";
 			char const *dir = "/sd/roms/scummvm/monkey1";
+			
+			// Make folder for savegames
+			mkdir("/sd/roms/scummvm/monkey1/saves",ACCESSPERMS);
+			
 			
 			Common::Language language = Common::UNK_LANG;
 			Common::Platform platform = Common::kPlatformUnknown;

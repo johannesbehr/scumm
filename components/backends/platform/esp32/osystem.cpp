@@ -63,7 +63,7 @@ namespace _Esp32 {
 		_timerManager = new DefaultTimerManager();
 		gettimeofday(&_startTime, NULL);
 		
-		_savefileManager = new DefaultSaveFileManager("/3ds/scummvm/saves/");
+		_savefileManager = new DefaultSaveFileManager("/sd/roms/scummvm/monkey1/saves");
 
 		initGraphics();
 		initAudio();
@@ -122,6 +122,8 @@ namespace _Esp32 {
 	#define KEY_DOWN 32
 	#define KEY_LEFT 64
 	#define KEY_RIGHT 128 
+	#define KEY_MENU 256 
+	#define KEY_VOLUME 512 	
 	uint16_t lastKeystate = 0;
 	
 	int ax = 0;
@@ -151,6 +153,36 @@ namespace _Esp32 {
 			//pushEventQueue(_eventQueue, event);	
 			_eventQueue.push(event);
 		}
+		
+		if(!(lastKeystate & KEY_MENU)&&(keystate&KEY_MENU)){
+			event.type = Common::EVENT_KEYDOWN;
+			event.kbd.keycode = Common::KEYCODE_1;
+			event.kbd.ascii = '1';
+			if(keystate&KEY_SELECT){
+				event.kbd.flags = Common::KBD_CTRL;
+			}else{
+				event.kbd.flags = Common::KBD_ALT;
+			}
+			//pushEventQueue(_eventQueue, event);	
+			printf("receiveKeyState(4):Send keydown / ALT+1\n");
+			_eventQueue.push(event);
+		}
+		
+		if((lastKeystate & KEY_MENU)&&!(keystate&KEY_MENU)){
+			event.type = Common::EVENT_KEYUP;
+			event.kbd.keycode = Common::KEYCODE_1;
+			event.kbd.ascii = '1';
+			if(keystate&KEY_SELECT){
+				event.kbd.flags = Common::KBD_CTRL;
+			}else{
+				event.kbd.flags = Common::KBD_ALT;
+			}
+			printf("receiveKeyState(5):Send keyup / ALT+1\n");
+			//pushEventQueue(_eventQueue, event);	
+			_eventQueue.push(event);
+		}
+	
+		
 
 		if(!(lastKeystate & KEY_A)&&(keystate&KEY_A)){
 			event.type = Common::EVENT_LBUTTONDOWN;
@@ -179,7 +211,6 @@ namespace _Esp32 {
 			event.mouse.y = _cursorY;
 			_eventQueue.push(event);
 		}
-		
 		
 		if(!(keystate&(KEY_RIGHT|KEY_LEFT))){
 			ax = 0;
