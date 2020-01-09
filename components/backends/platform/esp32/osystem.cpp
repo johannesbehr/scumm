@@ -190,7 +190,33 @@ namespace _Esp32 {
 			_eventQueue.push(event);
 		}
 	
+		if(!(lastKeystate & KEY_VOLUME)&&(keystate&KEY_VOLUME)){
+			event.type = Common::EVENT_KEYDOWN;
+			event.kbd.keycode = Common::KEYCODE_1;
+			event.kbd.ascii = '1';
+			/*if(keystate&KEY_SELECT){
+				event.kbd.flags = Common::KBD_CTRL;
+			}else{
+				event.kbd.flags = Common::KBD_ALT;
+			}*/
+			//pushEventQueue(_eventQueue, event);	
+			printf("receiveKeyState(4):Send keydown / ALT+1\n");
+			_eventQueue.push(event);
+		}
 		
+		if((lastKeystate & KEY_VOLUME)&&!(keystate&KEY_VOLUME)){
+			event.type = Common::EVENT_KEYUP;
+			event.kbd.keycode = Common::KEYCODE_1;
+			event.kbd.ascii = '1';
+			/*if(keystate&KEY_SELECT){
+				event.kbd.flags = Common::KBD_CTRL;
+			}else{
+				event.kbd.flags = Common::KBD_ALT;
+			}*/
+			printf("receiveKeyState(5):Send keyup / ALT+1\n");
+			//pushEventQueue(_eventQueue, event);	
+			_eventQueue.push(event);
+		}
 
 		if(!(lastKeystate & KEY_A)&&(keystate&KEY_A)){
 			event.type = Common::EVENT_LBUTTONDOWN;
