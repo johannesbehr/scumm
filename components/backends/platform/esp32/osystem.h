@@ -167,6 +167,9 @@ public:
 	void updateConfig();
 //	void updateSize();
 
+	void setSaveDir(char* dir);
+
+
 private:
 	void initGraphics();
 	void destroyGraphics();
@@ -187,6 +190,8 @@ private:
 	uint16 _gameWidth, _gameHeight;
 
 	struct timeval _startTime;
+	
+	char* savedir;
 	
 	/*
 

@@ -132,15 +132,15 @@ namespace _Esp32 {
 	}
 	
 	void OSystem_Esp32::setPalette(const byte *colors, uint start, uint num){
-		//printf("OSystem_Esp32::setPalette\n");
+		printf("OSystem_Esp32::setPalette\n");
 		byte r,g,b;
 		for(int i = 0; i<num;i++){
 			// Special conversation for RGB565
 			r= colors[i*3];
 			g= colors[i*3 + 1];
 			b= colors[i*3 + 2];
-			_palette[i*2 + 1] = ((b & 0xf8)>>3) | ((g & 0xfc) <<3);
-			_palette[i*2] = (r&0xf8) | (g>>5);
+			_palette[(start+i)*2 + 1] = ((b & 0xf8)>>3) | ((g & 0xfc) <<3);
+			_palette[(start+i)*2] = (r&0xf8) | (g>>5);
 			// ggg bbbbbb  rrrrr ggg
 			//printf("%d:(%d,%d,%d)\n",i+start,r,g,b);
 		}

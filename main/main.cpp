@@ -30,6 +30,7 @@
 #include "scumm/detection.h"
 #include "scumm/detection_tables.h"
 #include "scumm/scumm.h"
+#include "scumm/scummmetaengine.h"
 #include "scumm/scumm_v5.h"
 #include "common/config-manager.h"
 //namespace Scumm {
@@ -308,28 +309,33 @@ static void setupKeymapper(OSystem &system) {}
 		#include "../components/odroid/odroid_settings.h"
 		#include "../components/odroid/odroid_input.h"
 		#include "../components/odroid/odroid_display.h"
+		#include "../components/odroid/odroid_gui.h"
 		#include "../components/odroid/odroid_audio.h"
 		#include "../components/odroid/odroid_system.h"
 		#include "../components/odroid/odroid_sdcard.h"
 
 		
 		//Common::Language language = Common::GR_GRE;
-		
-		
+		char base[256]; //= "game1";//directories[selectedFolder].getName().c_str();
+		char dir[256];
+		char savedir[256];
 
 		odroid_gamepad_state lastJoysticState;
 		
 		_Esp32::OSystem_Esp32 *esp_system;
 		
+		void init_system(){
+			printf("init_system(1)\r\n");
+			esp_system = new _Esp32::OSystem_Esp32();
+			g_system = esp_system;
+		}
+		
 		void init_scumm(){
 			Common::String specialDebug;
 			Common::String command;
 	
-			printf("init_scumm(1)\r\n");
-			esp_system = new _Esp32::OSystem_Esp32();
-			g_system = esp_system;
 			esp_system->drawImageToScreen = &ili9341_write_frame_scumm;
-			
+			esp_system->setSaveDir(savedir);
 			//g_system = new _Esp32::OSystem_Esp32();
 			
 			// Verify that the backend has been initialized (i.e. g_system has been set).
@@ -347,7 +353,9 @@ static void setupKeymapper(OSystem &system) {}
 
 			// Load the config file
 			ConfMan.loadDefaultConfigFile();
-
+			//ConfMan.set("subtitles", "true", base);
+			
+			
 			// Update the config file
 			//ConfMan.set("versioninfo", "", Common::ConfigManager::kApplicationDomain);
 			
@@ -358,6 +366,7 @@ static void setupKeymapper(OSystem &system) {}
 			// the command line params) was read.
 			system.initBackend();
 			settings["gfx-mode"] = "default";
+			
 			setupGraphics(system);
 			setupKeymapper(system);
 			/*
@@ -367,26 +376,27 @@ static void setupKeymapper(OSystem &system) {}
 			printf("init_scumm done.\r\n");
 		}
 		
-		Scumm::ScummEngine_v5 *engine;
+		//Scumm::ScummEngine_v5 *engine;
+		Engine *engine;
 		
 		int lastmode = 0;
 		
 		void readInputTask(void *arg){
 			while(true){
 				
-				
+				/*
 				int mode = engine->get_charset_mode();
 				if(mode!=lastmode){
 					printf("main.cpp: Charset mode changed: %d!!!\n", mode);
 					lastmode = mode;
-				}
+				}*/
 		
 				
 				odroid_gamepad_state joysticState;
 				odroid_input_gamepad_read(&joysticState);
 
 				uint16_t keyState = 0;
-				bool state_changed = false;
+				//bool state_changed = false;
 
 				//ODROID_INPUT_START	1
 				//ODROID_INPUT_SELECT	2
@@ -509,16 +519,92 @@ static void setupKeymapper(OSystem &system) {}
 				abort();
 			}
 			
-			// Prepare Scum-Game
-			init_scumm();
+			// Prepare system
+			init_system();
+			
+			// Show Folder Selection
+			char const *basedir = "/sd/roms/scummvm";
+			
+			uint16_t c_black = 0x0000;
+			
+			drawString(30,180,"Select Game:",c_black);
+			drawString(30,210,"Press Start to play!",c_black);
+			
+			int selectedFolder = 0;
+			Common::FSNode basedirNode = Common::FSNode(basedir);
+			Common::FSList directories;
+			basedirNode.getChildren(directories, Common::FSNode::kListDirectoriesOnly);
+			
+			odroid_gamepad_state joysticState;
+			odroid_gamepad_state lastJoysticState;
+			
+			odroid_input_gamepad_read(&lastJoysticState);
+			
+			bool keypressed = false;
+			bool startPressed = false;
+			
+			while(!startPressed){
+				Common::String gameName = Common::String("> ") + directories[selectedFolder].getName() + Common::String("                    ");
+				
+				drawString(30,195,gameName.c_str(),c_black);
+				
+				keypressed = false;
+				while(!keypressed){
+					odroid_input_gamepad_read(&joysticState);
+					if(joysticState.values[ODROID_INPUT_RIGHT] && !lastJoysticState.values[ODROID_INPUT_RIGHT]){
+						if(selectedFolder<directories.size()-1){
+							selectedFolder++;
+						}
+						keypressed = true;
+					}
+
+					if(joysticState.values[ODROID_INPUT_LEFT] && !lastJoysticState.values[ODROID_INPUT_LEFT]){
+						if(selectedFolder>0){
+							selectedFolder--;
+						}
+						keypressed = true;
+					}
+					
+					// Game should start if user presses Start or A...
+					if((joysticState.values[ODROID_INPUT_START] && !lastJoysticState.values[ODROID_INPUT_START])||
+					(joysticState.values[ODROID_INPUT_A] && !lastJoysticState.values[ODROID_INPUT_A]))
+					{
+						startPressed = true;
+						keypressed = true;
+					}
+					lastJoysticState = joysticState;
+				}
+			}
+			
+
+			
+			
+
 			//Scumm::GameSettings settings = {"monkey", "CD",           0, Scumm::GID_MONKEY,     5, 0, MDT_ADLIB,                        Scumm::GF_AUDIOTRACKS, UNK, GUIO2(GUIO_NOSPEECH, GUIO_NOMIDI)};
 			
 			//char *base = NULL, *dir = NULL;
-			char const *base = "monkey";
-			char const *dir = "/sd/roms/scummvm/monkey1";
+			//char const *base = "loom";
+			//char const *dir = "/sd/roms/scummvm/loom";
+			//char base[256]; //= "game1";//directories[selectedFolder].getName().c_str();
+			//char dir[256];
+			//char savedir[256];
+			
+			sprintf(base,"%s",directories[selectedFolder].getName().c_str());
+			sprintf(dir,"%s",directories[selectedFolder].getPath().c_str());
+			sprintf(savedir,"%s/saves",directories[selectedFolder].getPath().c_str());
+			
+			//= directories[selectedFolder].getPath().c_str();
+			
+			
+			printf("Base: %s\n",base);
+			printf("Selected path: %s\n",dir);
+			
 			
 			// Make folder for savegames
-			mkdir("/sd/roms/scummvm/monkey1/saves",ACCESSPERMS);
+			mkdir(savedir,ACCESSPERMS);
+			
+			// Prepare Scum-Game
+			init_scumm();
 			
 			
 			Common::Language language = Common::UNK_LANG;
@@ -530,7 +616,7 @@ static void setupKeymapper(OSystem &system) {}
 			// Set the game path.
 			ConfMan.addGameDomain(base);
 			//if (dir != NULL)
-			ConfMan.set("path", dir, base);
+			ConfMan.set("path", dir,base);
 
 			// Set the game language.
 			ConfMan.set("language", Common::getLanguageCode(language), base);
@@ -544,6 +630,20 @@ static void setupKeymapper(OSystem &system) {}
 			//const Plugin *plugin = detectPlugin();
 			//PluginManager::instance().unloadPluginsExcept(PLUGIN_TYPE_ENGINE, plugin);
 
+			//Common::FSNode dirNode = Common::FSNode("/sd/roms/scummvm/monkey1");
+			Common::FSNode dirNode = Common::FSNode(dir);
+			Common::FSList files;
+			int res = dirNode.getChildren(files, Common::FSNode::kListAll);
+			printf("Files listed: %d\n", res);
+			
+			Scumm::ScummMetaEngine mEnginge;
+			
+			Common::List<Scumm::DetectorResult> results;
+			DetectedGames games = mEnginge.detectGames(files);
+			//detectGames(files, results, NULL);
+//			printf("gameid: %s\n",games[0].gameId.c_str());
+			ConfMan.set("gameid", games[0].gameId, base);
+/*
 			Scumm::DetectorResult dr;
 			dr.language = Common::EN_ANY;
 			
@@ -560,11 +660,12 @@ static void setupKeymapper(OSystem &system) {}
 			dr.game.guioptions = GUIO2(GUIO_NOSPEECH, GUIO_NOMIDI);
 			dr.language = Scumm::UNK_LANG;
 			dr.md5 = "2d1e891fe52df707c30185e52c50cd92";
-			dr.extra = 0;
+			dr.extra = 0;*/
 			
 			//Scumm::ScummEngine_v5 *engine = new Scumm::ScummEngine_v5(g_system,dr);
-			engine = new Scumm::ScummEngine_v5(g_system,dr);
-			
+			//engine = new Scumm::ScummEngine_v5(g_system,dr);
+			mEnginge.createInstance(g_system,&engine);
+			printf("Engine created.\n");
 			// Inform backend that the engine is about to be run
 			g_system->engineInit();
 

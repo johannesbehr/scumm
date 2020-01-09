@@ -63,7 +63,9 @@ namespace _Esp32 {
 		_timerManager = new DefaultTimerManager();
 		gettimeofday(&_startTime, NULL);
 		
-		_savefileManager = new DefaultSaveFileManager("/sd/roms/scummvm/monkey1/saves");
+		//_savefileManager = new DefaultSaveFileManager("/sd/roms/scummvm/saves");
+		printf("savepath: %s\n",savedir);
+		_savefileManager = new DefaultSaveFileManager(savedir);
 
 		initGraphics();
 		initAudio();
@@ -86,6 +88,12 @@ namespace _Esp32 {
 		return (uint32)(((currentTime.tv_sec - _startTime.tv_sec) * 1000) +
 						((currentTime.tv_usec - _startTime.tv_usec) / 1000));// - _timeSuspended;
 	}
+	
+	void OSystem_Esp32::setSaveDir(char* dir){
+		savedir = dir;
+	}
+
+	
 	void OSystem_Esp32::delayMillis(uint msecs) {
 		vTaskDelay( msecs / portTICK_PERIOD_MS );
 		//usleep(msecs * 1000);

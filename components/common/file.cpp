@@ -26,6 +26,7 @@
 #include "common/fs.h"
 #include "common/textconsole.h"
 #include "common/system.h"
+#include "common/config-manager.h"
 #include "backends/fs/fs-factory.h"
 
 #include "backends/fs/stdiostream.h"
@@ -55,12 +56,13 @@ bool File::open(const String &filename, Archive &archive) {
 
 	printf("File::open(11) in file.cpp.\n");
 	
-	Common::String filename2 = Common::String("/sd/roms/scummvm/monkey1/") + filename;
-	//printf("File:%s\n", filename2.c_str());
+	Common::String filename2 = ConfMan.get("path") + Common::String("/") + filename;
+	//Common::String filename2 = Common::String("/sd/roms/scummvm/monkey1/") + filename;
+	printf("File:%s\n", filename2.c_str());
 	
 	SeekableReadStream *stream = nullptr;
 	stream = StdioStream::makeFromPath(filename2.c_str(), false);
-	/*if ((stream = archive.createReadStreamForMember(filename2))) {
+	/*if ((stream = archive.createReadStreamForMember(filename))) {
 		debug(8, "Opening hashed: %s", filename.c_str());
 	} else if ((stream = archive.createReadStreamForMember(filename + "."))) {
 		// WORKAROUND: Bug #1458388: "SIMON1: Game Detection fails"

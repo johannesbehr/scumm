@@ -42,6 +42,7 @@
 #include "scumm/file.h"
 #include "scumm/file_nes.h"
 #include "scumm/resource.h"
+#include "scumm/scummmetaengine.h"
 
 #include "engines/metaengine.h"
 
@@ -953,35 +954,6 @@ static bool testGame(const GameSettings *g, const DescMap &fileMD5Map, const Com
 	return true;
 }
 
-
-} // End of namespace Scumm
-
-//pragma mark -
-//pragma mark --- Plugin code ---
-//pragma mark -
-
-
-using namespace Scumm;
-
-class ScummMetaEngine : public MetaEngine {
-public:
-	virtual const char *getName() const;
-	virtual const char *getOriginalCopyright() const;
-
-	virtual bool hasFeature(MetaEngineFeature f) const;
-	PlainGameList getSupportedGames() const override;
-	PlainGameDescriptor findGame(const char *gameid) const override;
-	virtual DetectedGames detectGames(const Common::FSList &fslist) const override;
-
-	virtual Common::Error createInstance(OSystem *syst, Engine **engine) const;
-
-	virtual SaveStateList listSaves(const char *target) const;
-	virtual int getMaximumSaveSlot() const;
-	virtual void removeSaveState(const char *target, int slot) const;
-	virtual SaveStateDescriptor querySaveMetaInfos(const char *target, int slot) const;
-	virtual const ExtraGuiOptions getExtraGuiOptions(const Common::String &target) const;
-};
-
 bool ScummMetaEngine::hasFeature(MetaEngineFeature f) const {
 	return
 		(f == kSupportsListSaves) ||
@@ -1039,8 +1011,10 @@ static Common::String generatePreferredTarget(const DetectorResult &x) {
 DetectedGames ScummMetaEngine::detectGames(const Common::FSList &fslist) const {
 	DetectedGames detectedGames;
 	Common::List<DetectorResult> results;
-	::detectGames(fslist, results, 0);
+	Scumm::detectGames(fslist, results, 0);
 
+	printf("ScummMetaEngine::detectGames(1)\n");
+	
 	for (Common::List<DetectorResult>::iterator
 	          x = results.begin(); x != results.end(); ++x) {
 		const PlainGameDescriptor *g = findPlainGameDescriptor(x->game.gameid, gameDescriptions);
@@ -1054,9 +1028,11 @@ DetectedGames ScummMetaEngine::detectGames(const Common::FSList &fslist) const {
 
 		game.setGUIOptions(x->game.guioptions + MidiDriver::musicType2GUIO(x->game.midi));
 		game.appendGUIOptions(getGameGUIOptionsDescriptionLanguage(x->language));
-
+		printf("ScummMetaEngine::detectGames(x):%s\n", game.description.c_str());
+		
 		detectedGames.push_back(game);
 	}
+	printf("ScummMetaEngine::detectGames(2)\n");
 
 	return detectedGames;
 }
@@ -1069,6 +1045,9 @@ DetectedGames ScummMetaEngine::detectGames(const Common::FSList &fslist) const {
 Common::Error ScummMetaEngine::createInstance(OSystem *syst, Engine **engine) const {
 	assert(syst);
 	assert(engine);
+	
+	printf("ScummMetaEngine::createInstance(1)\n");
+
 	const char *gameid = ConfMan.get("gameid").c_str();
 
 	// We start by checking whether the specified game ID is obsolete.
@@ -1076,21 +1055,31 @@ Common::Error ScummMetaEngine::createInstance(OSystem *syst, Engine **engine) co
 	// the correct new game ID (and platform, if specified).
 	Engines::upgradeTargetIfNecessary(obsoleteGameIDsTable);
 
+	printf("Path: %s\n",ConfMan.get("path").c_str());
+	printf("Gameid: %s\n",gameid);
+	
 	// Fetch the list of files in the current directory
 	Common::FSList fslist;
 	Common::FSNode dir(ConfMan.get("path"));
-	if (!dir.isDirectory())
+	if (!dir.isDirectory()){
+		printf("ScummMetaEngine::createInstance(1a)\n");
 		return Common::kPathNotDirectory;
+	}
 	if (!dir.getChildren(fslist, Common::FSNode::kListAll))
+	{
+		printf("ScummMetaEngine::createInstance(1b)\n");
 		return Common::kNoGameDataFoundError;
+	}
 
 	// Invoke the detector, but fixed to the specified gameid.
 	Common::List<DetectorResult> results;
-	::detectGames(fslist, results, gameid);
+	Scumm::detectGames(fslist, results, gameid);
 
 	// Unable to locate game data
-	if (results.empty())
+	if (results.empty()){
+		printf("ScummMetaEngine::createInstance(1c)\n");
 		return Common::kNoGameDataFoundError;
+	}
 
 	// No unique match found. If a platform override is present, try to
 	// narrow down the list a bit more.
@@ -1118,6 +1107,7 @@ Common::Error ScummMetaEngine::createInstance(OSystem *syst, Engine **engine) co
 	// Still no unique match found -> print a warning
 	if (results.size() > 1)
 		warning("Engine_SCUMM_create: No unique game candidate found, using first one");
+	printf("ScummMetaEngine::createInstance(2)\n");
 
 	// Simply use the first match
 	DetectorResult res(*(results.begin()));
@@ -1163,6 +1153,7 @@ Common::Error ScummMetaEngine::createInstance(OSystem *syst, Engine **engine) co
 	// TODO: Do we really still need / want the platform override ?
 	if (ConfMan.hasKey("platform"))
 		res.game.platform = Common::parsePlatform(ConfMan.get("platform"));
+	printf("ScummMetaEngine::createInstance(3)\n");
 
 	// Language override
 	if (ConfMan.hasKey("language"))
@@ -1175,6 +1166,8 @@ Common::Error ScummMetaEngine::createInstance(OSystem *syst, Engine **engine) co
 		res.game.midi = MDT_TOWNS;
 	// Finally, we have massaged the GameDescriptor to our satisfaction, and can
 	// instantiate the appropriate game engine. Hooray!
+	printf("ScummMetaEngine::createInstance(4)\n");
+	
 	switch (res.game.version) {
 	case 0:
 		*engine = new ScummEngine_v0(syst, res);
@@ -1190,10 +1183,12 @@ Common::Error ScummMetaEngine::createInstance(OSystem *syst, Engine **engine) co
 			*engine = new ScummEngine_v3old(syst, res);
 		break;
 	case 4:
-		*engine = new ScummEngine_v4(syst, res);
+		*engine = new ScummEngine_v4(syst, res);		
 		break;
 	case 5:
+		printf("ScummMetaEngine::createInstance(5)\n");
 		*engine = new ScummEngine_v5(syst, res);
+		printf("ScummMetaEngine::createInstance(5):v5!\n");
 		break;
 	case 6:
 		switch (res.game.heversion) {
@@ -1278,9 +1273,9 @@ const char *ScummMetaEngine::getOriginalCopyright() const {
 	       "Humongous SCUMM Games (C) Humongous";
 }
 
-namespace Scumm {
+
 bool getSavegameName(Common::InSaveFile *in, Common::String &desc, int heversion);
-} // End of namespace Scumm
+
 
 int ScummMetaEngine::getMaximumSaveSlot() const { return 99; }
 
@@ -1373,8 +1368,10 @@ const ExtraGuiOptions ScummMetaEngine::getExtraGuiOptions(const Common::String &
 	return options;
 }
 
+} // End of namespace Scumm
+
 #if PLUGIN_ENABLED_DYNAMIC(SCUMM)
-	REGISTER_PLUGIN_DYNAMIC(SCUMM, PLUGIN_TYPE_ENGINE, ScummMetaEngine);
+	REGISTER_PLUGIN_DYNAMIC(SCUMM, PLUGIN_TYPE_ENGINE, Scumm::ScummMetaEngine);
 #else
-	REGISTER_PLUGIN_STATIC(SCUMM, PLUGIN_TYPE_ENGINE, ScummMetaEngine);
+	REGISTER_PLUGIN_STATIC(SCUMM, PLUGIN_TYPE_ENGINE, Scumm::ScummMetaEngine);
 #endif

@@ -1377,7 +1377,7 @@ void ScummEngine::setupScumm() {
 
 	// Setup the music engine
 	setupMusic(_game.midi);
-
+	printf("ScummEngine::setupScumm(3b)\n");
 	// Load localization data, if present
 	loadLanguageBundle();
 	printf("ScummEngine::setupScumm(4)\n");
@@ -1870,9 +1870,16 @@ void ScummEngine_v100he::resetScumm() {
 #endif
 
 void ScummEngine::setupMusic(int midi) {
+	printf("ScummEngine::setupMusic(1)\n");
+	_sound->_musicType = MDT_NONE;
+	return;
+
+/*
 	MidiDriver::DeviceHandle dev = MidiDriver::detectDevice(midi);
 	_native_mt32 = ((MidiDriver::getMusicType(dev) == MT_MT32) || ConfMan.getBool("native_mt32"));
 
+	printf("ScummEngine::setupMusic(2):%d\n",MidiDriver::getMusicType(dev));
+	printf("ScummEngine::setupMusic(3)\n");
 	switch (MidiDriver::getMusicType(dev)) {
 	case MT_NULL:
 		_sound->_musicType = MDT_NONE;
@@ -1906,6 +1913,7 @@ void ScummEngine::setupMusic(int midi) {
 		break;
 	}
 
+	
 	if ((_game.id == GID_MONKEY_EGA || (_game.id == GID_LOOM && _game.version == 3))
 	   &&  (_game.platform == Common::kPlatformDOS) && _sound->_musicType == MDT_MIDI) {
 		Common::String fileName;
@@ -1932,14 +1940,14 @@ void ScummEngine::setupMusic(int midi) {
 
 		if (missingFile) {
 			printf("Missing File!\n");
-		/*
-			GUI::MessageDialog dialog(
-				Common::String::format(
-					_("Native MIDI support requires the Roland Upgrade from LucasArts,\n"
-					"but %s is missing. Using AdLib instead."), fileName.c_str()),
-				_("OK"));
-			dialog.runModal();
-			_sound->_musicType = MDT_ADLIB;*/
+		
+		//	GUI::MessageDialog dialog(
+		//		Common::String::format(
+		//				_("Native MIDI support requires the Roland Upgrade from LucasArts,\n"
+		//				"but %s is missing. Using AdLib instead."), fileName.c_str()),
+		//			_("OK"));
+		//		dialog.runModal();
+		//		_sound->_musicType = MDT_ADLIB;
 		}
 	}
 
@@ -1949,8 +1957,8 @@ void ScummEngine::setupMusic(int midi) {
 	else
 		_enable_gs = ConfMan.getBool("enable_gs");
 
-	/* Bind the mixer to the system => mixer will be invoked
-	 * automatically when samples need to be generated */
+	// Bind the mixer to the system => mixer will be invoked
+	// automatically when samples need to be generated 
 	if (!_mixer->isReady()) {
 		warning("Sound mixer initialization failed");
 		if (_sound->_musicType == MDT_ADLIB || _sound->_musicType == MDT_PCSPK || _sound->_musicType == MDT_PCJR || _sound->_musicType == MDT_CMS) {
@@ -2066,10 +2074,11 @@ void ScummEngine::setupMusic(int midi) {
 
 		if (_imuse) {
 			//_imuse->addSysexHandler
-			//	(/*IMUSE_SYSEX_ID*/ 0x7D,
+			//	0x7D//IMUSE_SYSEX_ID
 			//	 (_game.id == GID_SAMNMAX) ? sysexHandler_SamNMax : sysexHandler_Scumm);
 			_imuse->addSysexHandler
-				(/*IMUSE_SYSEX_ID*/ 0x7D,sysexHandler_Scumm);				 
+				( 0x7D,sysexHandler_Scumm);				 
+				//(IMUSE_SYSEX_ID,sysexHandler_Scumm);				 
 			_imuse->property(IMuse::PROP_GAME_ID, _game.id);
 			if (ConfMan.hasKey("tempo"))
 				_imuse->property(IMuse::PROP_TEMPO_BASE, ConfMan.getInt("tempo"));
@@ -2088,6 +2097,7 @@ void ScummEngine::setupMusic(int midi) {
 				_imuse->property(IMuse::PROP_AMIGA, 1);
 		}
 	}
+	*/
 }
 
 void ScummEngine::syncSoundSettings() {

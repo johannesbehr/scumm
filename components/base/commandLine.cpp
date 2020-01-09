@@ -244,7 +244,7 @@ void registerDefaults() {
 	ConfMan.registerDefault("path", "");
 	ConfMan.registerDefault("platform", Common::kPlatformDOS);
 	ConfMan.registerDefault("language", "en");
-	ConfMan.registerDefault("subtitles", false);
+	ConfMan.registerDefault("subtitles", true);
 	ConfMan.registerDefault("boot_param", 0);
 	ConfMan.registerDefault("dump_scripts", false);
 	ConfMan.registerDefault("save_slot", -1);
