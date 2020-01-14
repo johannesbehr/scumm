@@ -32,6 +32,10 @@
 #include "scumm/scumm.h"
 #include "scumm/scummmetaengine.h"
 #include "scumm/scumm_v5.h"
+
+#include "cine/cinemetaengine.h"
+
+
 #include "common/config-manager.h"
 //namespace Scumm {
 	
@@ -353,7 +357,8 @@ static void setupKeymapper(OSystem &system) {}
 
 			// Load the config file
 			ConfMan.loadDefaultConfigFile();
-			//ConfMan.set("subtitles", "true", base);
+			// As we have no sound 
+			ConfMan.setBool("subtitles", true);
 			
 			
 			// Update the config file
@@ -636,12 +641,30 @@ static void setupKeymapper(OSystem &system) {}
 			int res = dirNode.getChildren(files, Common::FSNode::kListAll);
 			printf("Files listed: %d\n", res);
 			
-			Scumm::ScummMetaEngine mEnginge;
+			Cine::CineMetaEngine cmEngine;
+			Scumm::ScummMetaEngine smEngine;
+			
+			MetaEngine *engines[] = {&smEngine,&cmEngine};
+			
+			MetaEngine *mEngine;// = smEngine;
+			DetectedGames games;// = mEngine.detectGames(files);
 			
 			Common::List<Scumm::DetectorResult> results;
-			DetectedGames games = mEnginge.detectGames(files);
+			
+			for(int i = 0; i< 2;i++){
+				mEngine = engines[i];
+				games = mEngine->detectGames(files);
+				if(!games.empty())break;
+			}
+
+			if(games.empty()){
+				printf("No Engine found to run this game!\n");
+				abort();
+			}
+			
+			//DetectedGames games = mEngine.detectGames(files);
 			//detectGames(files, results, NULL);
-//			printf("gameid: %s\n",games[0].gameId.c_str());
+			printf("gameid: %s\n",games[0].gameId.c_str());
 			ConfMan.set("gameid", games[0].gameId, base);
 /*
 			Scumm::DetectorResult dr;
@@ -664,7 +687,7 @@ static void setupKeymapper(OSystem &system) {}
 			
 			//Scumm::ScummEngine_v5 *engine = new Scumm::ScummEngine_v5(g_system,dr);
 			//engine = new Scumm::ScummEngine_v5(g_system,dr);
-			mEnginge.createInstance(g_system,&engine);
+			mEngine->createInstance(g_system,&engine);
 			printf("Engine created.\n");
 			// Inform backend that the engine is about to be run
 			g_system->engineInit();

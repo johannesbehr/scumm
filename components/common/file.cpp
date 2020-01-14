@@ -78,6 +78,7 @@ bool File::open(const FSNode &node) {
 	assert(!_handle);
 
 	printf("File::open(2) in file.cpp\n");
+	printf("%s\n", node.getPath().c_str());
 	
 	if (!node.exists()) {
 		printf("File::open(3) in file.cpp\n");
