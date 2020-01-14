@@ -404,6 +404,7 @@ void CineEngine::quickLoad(){
 	renderer->drawString(loadString, 0);
 
 	makeLoad(saveNameBuffer);
+	disableSystemMenu = 0;
 }
 
 void CineEngine::quickSave(){
